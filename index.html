@@ -332,9 +332,8 @@
       background: linear-gradient(180deg, rgba(0, 230, 210, 0.05), rgba(0, 0, 0, 0));
       overflow-x: auto;
       scrollbar-width: none;
-      position: sticky;
-      top: 0;
-      z-index: 5;
+      position: relative;
+      z-index: 1;
     }
 
     #mobile-section-nav::-webkit-scrollbar {
@@ -864,6 +863,8 @@
 
       #mobile-section-nav {
         display: flex;
+        margin: 0 12px;
+        border-radius: 10px;
       }
 
       .welcome-card {
@@ -927,16 +928,16 @@
   </div>
 
   <div id="workspace">
-    <div id="mobile-section-nav" aria-label="Mobile section navigation">
-      <button type="button" class="mobile-quick-btn" data-mobile-section="components"><i class="ph ph-circuitry"></i> Components</button>
-      <button type="button" class="mobile-quick-btn" data-mobile-section="examples"><i class="ph ph-stack"></i> Examples</button>
-      <button type="button" class="mobile-quick-btn" data-mobile-section="challenges"><i class="ph ph-puzzle-piece"></i> Challenges</button>
-      <button type="button" class="mobile-quick-btn" data-mobile-section="props"><i class="ph ph-gear"></i> Properties</button>
-      <button type="button" class="mobile-quick-btn" data-mobile-section="tt"><i class="ph ph-table"></i> Truth Table</button>
-    </div>
-    
+
     <div id="left-panel">
       <div class="panel-header"><i class="ph ph-circuitry"></i> COMPONENTS <button type="button" id="btn-components-toggle" aria-label="Hide components" aria-expanded="true" title="Hide components"><i class="ph ph-caret-up"></i></button></div>
+      <div id="mobile-section-nav" aria-label="Mobile section navigation">
+        <button type="button" class="mobile-quick-btn" data-mobile-section="components"><i class="ph ph-circuitry"></i> Components</button>
+        <button type="button" class="mobile-quick-btn" data-mobile-section="examples"><i class="ph ph-stack"></i> Examples</button>
+        <button type="button" class="mobile-quick-btn" data-mobile-section="challenges"><i class="ph ph-puzzle-piece"></i> Challenges</button>
+        <button type="button" class="mobile-quick-btn" data-mobile-section="props"><i class="ph ph-gear"></i> Properties</button>
+        <button type="button" class="mobile-quick-btn" data-mobile-section="tt"><i class="ph ph-table"></i> Truth Table</button>
+      </div>
       <div class="panel-content">
         
         <div class="category-title">Basic</div>
@@ -1140,7 +1141,7 @@ function usesTapToAdd() {
 function updateInteractionHint() {
   if (!statusHint) return;
   statusHint.textContent = usesTapToAdd()
-    ? 'Use section tabs above Components • Tap Components then tap a gate to add • Use +/- to zoom'
+    ? 'Use section tabs in Components panel • Tap Components then tap a gate to add • Use +/- to zoom'
     : 'Drag to add • Hold left-click on empty background to pan • Scroll to zoom';
 }
 
