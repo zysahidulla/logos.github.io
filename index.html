@@ -89,6 +89,7 @@
       background-color: var(--bg-app);
       color: var(--text-main);
       height: 100vh;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -191,6 +192,7 @@
       display: flex;
       flex: 1;
       overflow: hidden;
+      min-height: 0;
     }
 
     /* Left Panel: Components */
@@ -199,6 +201,7 @@
       background-color: var(--bg-panel);
       border-right: 1px solid var(--border-color);
       display: flex; flex-direction: column;
+      min-height: 0;
     }
 
     /* Middle Area: Canvas + Status Bar */
@@ -206,6 +209,7 @@
       flex: 1;
       display: flex; flex-direction: column;
       position: relative;
+      min-height: 0;
     }
 
     /* Right Panel: Properties */
@@ -214,6 +218,7 @@
       background-color: var(--bg-panel);
       border-left: 1px solid var(--border-color);
       display: flex; flex-direction: column;
+      min-height: 0;
     }
 
     .panel-header {
@@ -224,7 +229,7 @@
       border-bottom: 1px solid var(--border-color);
     }
 
-    .panel-content { padding: 16px 20px; overflow-y: auto; flex: 1; }
+    .panel-content { padding: 16px 20px; overflow-y: auto; flex: 1; min-height: 0; -webkit-overflow-scrolling: touch; }
 
     /* ────────────────────────────────────────────────
        TOOLBOX ITEMS
@@ -240,6 +245,7 @@
       display: flex; align-items: center; justify-content: space-between;
       padding: 6px 8px; margin-bottom: 4px;
       border-radius: 6px; cursor: grab; transition: all 0.2s;
+      touch-action: manipulation;
     }
     .gate-tool:hover { background-color: var(--bg-hover); }
     .gate-tool:active { cursor: grabbing; }
@@ -262,8 +268,37 @@
       background-color: var(--bg-canvas);
       background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
       background-size: 20px 20px;
+      min-height: 0;
+      touch-action: none;
     }
-    #canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; outline: none; }
+    #canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; outline: none; touch-action: none; }
+
+    #mobile-canvas-controls {
+      position: absolute;
+      right: 14px;
+      bottom: 14px;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 3;
+    }
+
+    #mobile-canvas-controls .btn {
+      min-width: 48px;
+      border-radius: 12px;
+      border-color: rgba(0, 230, 210, 0.24);
+      background: rgba(13, 13, 13, 0.82);
+      color: var(--text-main);
+      backdrop-filter: blur(12px);
+    }
+
+    #mobile-canvas-controls .btn:hover,
+    #mobile-canvas-controls .btn:focus {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(0, 230, 210, 0.12);
+      box-shadow: none;
+    }
 
     #status-bar {
       height: 36px; border-top: 1px solid var(--border-color);
@@ -628,6 +663,120 @@
       border-color: var(--accent);
       color: var(--text-main);
     }
+
+    @media (max-width: 991.98px) {
+      body {
+        height: auto;
+        overflow: auto;
+      }
+
+      #top-nav {
+        height: auto;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        padding: 12px;
+      }
+
+      .nav-left,
+      .nav-right {
+        gap: 10px;
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        scrollbar-width: none;
+      }
+
+      .nav-left::-webkit-scrollbar,
+      .nav-right::-webkit-scrollbar {
+        display: none;
+      }
+
+      .nav-btn {
+        flex: 0 0 auto;
+        min-height: 40px;
+        white-space: nowrap;
+      }
+
+      #workspace {
+        flex-direction: column;
+        overflow: visible;
+      }
+
+      #left-panel,
+      #right-panel {
+        width: 100%;
+        border-left: none;
+        border-right: none;
+      }
+
+      #left-panel {
+        border-bottom: 1px solid var(--border-color);
+        max-height: min(34vh, 320px);
+      }
+
+      #center-panel {
+        min-height: 58vh;
+      }
+
+      #right-panel {
+        border-top: 1px solid var(--border-color);
+        max-height: min(38vh, 360px);
+      }
+
+      #undo-redo-bar,
+      #status-main {
+        flex-wrap: wrap;
+      }
+
+      #undo-redo-bar #zoom-indicator {
+        margin-left: 0;
+      }
+
+      #status-bar {
+        height: auto;
+        min-height: 36px;
+        padding: 8px 12px;
+      }
+
+      #status-right,
+      #status-hint {
+        width: 100%;
+        max-width: none;
+        text-align: left;
+        white-space: normal;
+      }
+
+      #truth-table-view {
+        min-width: 420px;
+      }
+
+      #mobile-canvas-controls {
+        display: flex;
+      }
+
+      .welcome-card {
+        padding: 24px 18px 18px;
+      }
+    }
+
+    @media (max-width: 767.98px) {
+      .panel-header,
+      .panel-content {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .browser-meta,
+      .challenge-head {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .welcome-note {
+        max-width: 32ch;
+      }
+    }
   </style>
 </head>
 <body>
@@ -635,10 +784,10 @@
   <div id="welcome-modal" aria-hidden="true">
     <div class="welcome-card" role="dialog" aria-modal="true" aria-labelledby="welcome-title">
       <button id="welcome-close" type="button" aria-label="Close">X</button>
-      <div class="welcome-badge"><i class="ph ph-circuitry"></i> Desktop Experience</div>
+      <div class="welcome-badge"><i class="ph ph-circuitry"></i> Responsive Experience</div>
       <div class="welcome-title" id="welcome-title">WELCOME TO LOGOS!</div>
-      <div class="welcome-title" id="welcome-title">An Interactive Digital Logic Circuit Simulator</div>
-      <div class="welcome-note">This is the Beta Version and it is only compatible on PC. Mobile version is coming soon.</div>
+      <div class="welcome-title">An Interactive Digital Logic Circuit Simulator</div>
+      <div class="welcome-note">This beta now works on desktop, tablet, and mobile. On smaller screens, tap a component to add it to the canvas and use the zoom buttons to navigate.</div>
       <div class="welcome-divider"></div>
       <button class="welcome-start" id="welcome-start" type="button">Start Exploring</button>
     </div>
@@ -720,6 +869,11 @@
     <div id="center-panel">
       <div id="canvas-container">
         <canvas id="canvas"></canvas>
+        <div id="mobile-canvas-controls" class="d-lg-none" aria-label="Canvas controls">
+          <button type="button" class="btn btn-sm btn-outline-light" id="btn-zoom-in" aria-label="Zoom in"><i class="ph ph-plus"></i></button>
+          <button type="button" class="btn btn-sm btn-outline-light" id="btn-zoom-out" aria-label="Zoom out"><i class="ph ph-minus"></i></button>
+          <button type="button" class="btn btn-sm btn-outline-light" id="btn-zoom-reset" aria-label="Reset zoom">100%</button>
+        </div>
       </div>
       <div id="undo-redo-bar">
         <div id="undo-redo-controls">
@@ -757,9 +911,13 @@ const rightHeader = document.getElementById('right-header');
 const rightContent = document.getElementById('right-content');
 const counts = document.getElementById('counts');
 const btnTheme = document.getElementById('btn-theme');
+const statusHint = document.getElementById('status-hint');
 const welcomeModal = document.getElementById('welcome-modal');
 const welcomeClose = document.getElementById('welcome-close');
 const welcomeStart = document.getElementById('welcome-start');
+const btnZoomIn = document.getElementById('btn-zoom-in');
+const btnZoomOut = document.getElementById('btn-zoom-out');
+const btnZoomReset = document.getElementById('btn-zoom-reset');
 
 let components = []; let wires = [];
 let selectedComp = null; let draggedComp = null; let connectingFrom = null;
@@ -771,6 +929,9 @@ let challengeFeedback = '';
 const exampleSignatureCache = {};
 
 let currentMode = 'examples';
+let activePointerId = null;
+
+const mobileLayoutQuery = window.matchMedia('(max-width: 991.98px)');
 
 // Undo / Redo stacks
 let undoStack = [], redoStack = [];
@@ -847,6 +1008,21 @@ function initTheme() {
   setTheme(saved === 'light' ? 'light' : 'dark');
 }
 
+function isMobileLayout() {
+  return mobileLayoutQuery.matches;
+}
+
+function usesTapToAdd() {
+  return isMobileLayout() || window.matchMedia('(pointer: coarse)').matches;
+}
+
+function updateInteractionHint() {
+  if (!statusHint) return;
+  statusHint.textContent = usesTapToAdd()
+    ? 'Tap a component to add it • Drag gates to move • Tap output then input to wire • Use +/- to zoom'
+    : 'Drag to add • Hold left-click on empty background to pan • Scroll to zoom';
+}
+
 function showWelcomeModal() {
   if (!welcomeModal) return;
   welcomeModal.classList.add('show');
@@ -878,9 +1054,13 @@ window.addEventListener('keydown', e => {
 
 function resize() {
   canvas.width = container.clientWidth; canvas.height = container.clientHeight;
+  updateInteractionHint();
   render();
 }
 window.addEventListener('resize', resize);
+if (mobileLayoutQuery.addEventListener) {
+  mobileLayoutQuery.addEventListener('change', updateInteractionHint);
+}
 
 function getPortConfig(type) {
   if (type === 'input') return { inPorts: 0, outPorts: 1, height: 50 };
@@ -2064,7 +2244,7 @@ function render() {
     ctx.stroke();
   });
   
-  if(connectingFrom && window.mx) {
+  if(connectingFrom && Number.isFinite(window.mx) && Number.isFinite(window.my)) {
     let p1 = connectingFrom.c.getOutPos();
     ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(window.mx, window.my);
     ctx.lineWidth = 1.5; ctx.strokeStyle = cssVar('--wire-preview'); ctx.stroke();
@@ -2079,9 +2259,188 @@ function render() {
 // Interaction
 // ────────────────────────────────────────────────
 let mx=0, my=0;
+window.mx = 0;
+window.my = 0;
 
 let dragOffsetX = 0, dragOffsetY = 0;
 let dragStartX = 0, dragStartY = 0;
+
+function getCanvasPoint(clientX, clientY) {
+  const rect = canvas.getBoundingClientRect();
+  const rawX = clientX - rect.left;
+  const rawY = clientY - rect.top;
+  return {
+    rawX,
+    rawY,
+    worldX: (rawX - panX) / zoomLevel,
+    worldY: (rawY - panY) / zoomLevel
+  };
+}
+
+function applyZoom(nextZoom, clientX, clientY) {
+  const oldZoom = zoomLevel;
+  zoomLevel = Math.max(0.5, Math.min(3, nextZoom));
+  if (zoomLevel === oldZoom) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const anchorX = clientX ?? (rect.left + rect.width / 2);
+  const anchorY = clientY ?? (rect.top + rect.height / 2);
+  const mouseX = anchorX - rect.left;
+  const mouseY = anchorY - rect.top;
+
+  panX = mouseX - (mouseX - panX) * (zoomLevel / oldZoom);
+  panY = mouseY - (mouseY - panY) * (zoomLevel / oldZoom);
+}
+
+function stepZoom(delta, clientX, clientY) {
+  applyZoom(zoomLevel + delta, clientX, clientY);
+  render();
+}
+
+function placeGateAtViewportCenter(type) {
+  container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const rect = canvas.getBoundingClientRect();
+  const point = getCanvasPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+  pushUndo();
+  const gate = new Gate(type, point.worldX - 45, point.worldY - 28);
+  components.push(gate);
+  selectedComp = gate;
+  setMode('props');
+  simulate();
+}
+
+function handlePointerDown(clientX, clientY, button = 0) {
+  const point = getCanvasPoint(clientX, clientY);
+  const rawX = point.rawX;
+  const rawY = point.rawY;
+  const mx = point.worldX;
+  const my = point.worldY;
+
+  if (button !== 0) return;
+
+  window.mx = mx;
+  window.my = my;
+
+  if (selectedComp) {
+    const del = selectedComp.getDeleteBadgePos();
+    if (Math.hypot(mx - del.x, my - del.y) <= del.r + 2) {
+      pushUndo();
+      removeComponent(selectedComp);
+      return;
+    }
+  }
+
+  for (let c of components) {
+    if (c.outPorts && Math.hypot(mx - c.getOutPos().x, my - c.getOutPos().y) < 12) {
+      connectingFrom = { c, p: 0 };
+      render();
+      return;
+    }
+  }
+
+  for (let w of wires) {
+    if (isPointNearWire(mx, my, w)) {
+      pushUndo();
+      wires = wires.filter(wire => wire !== w);
+      simulate();
+      render();
+      return;
+    }
+  }
+
+  for (let i = components.length - 1; i >= 0; i--) {
+    let c = components[i];
+    if (mx > c.x && mx < c.x + c.w && my > c.y && my < c.y + c.h) {
+      if (c.type === 'input') {
+        pushUndo();
+        c.value = !c.value;
+        simulate();
+      }
+      selectedComp = c;
+      draggedComp = c;
+      dragOffX = mx - c.x;
+      dragOffY = my - c.y;
+      dragStartX = c.x;
+      dragStartY = c.y;
+      updateUI();
+      render();
+      return;
+    }
+  }
+
+  isPanning = true;
+  panStartX = rawX;
+  panStartY = rawY;
+  selectedComp = null;
+  updateUI();
+  render();
+}
+
+function handlePointerMove(clientX, clientY) {
+  const point = getCanvasPoint(clientX, clientY);
+  const rawX = point.rawX;
+  const rawY = point.rawY;
+  const mx = point.worldX;
+  const my = point.worldY;
+
+  if (isPanning) {
+    panX += (rawX - panStartX);
+    panY += (rawY - panStartY);
+    panStartX = rawX;
+    panStartY = rawY;
+    render();
+    return;
+  }
+
+  window.mx = mx;
+  window.my = my;
+  if (draggedComp) {
+    draggedComp.x = mx - dragOffX;
+    draggedComp.y = my - dragOffY;
+    render();
+  }
+  if (connectingFrom) render();
+}
+
+function handlePointerUp() {
+  isPanning = false;
+  if (draggedComp) {
+    if (Math.abs(draggedComp.x - dragStartX) > 2 || Math.abs(draggedComp.y - dragStartY) > 2) {
+      const moved = draggedComp;
+      const finalX = moved.x;
+      const finalY = moved.y;
+      moved.x = dragStartX;
+      moved.y = dragStartY;
+      pushUndo();
+      moved.x = finalX;
+      moved.y = finalY;
+    }
+  }
+  draggedComp = null;
+  if (connectingFrom) {
+    let wireCreated = false;
+    for (let c of components) {
+      for (let i = 0; i < c.inPorts; i++) {
+        let p = c.getInPos(i);
+        if (Math.hypot(window.mx - p.x, window.my - p.y) < 12) {
+          pushUndo();
+          wires = wires.filter(w => !(w.to.c === c && w.to.p === i));
+          wires.push({ from: connectingFrom, to: { c, p: i } });
+          wireCreated = true;
+          break;
+        }
+      }
+      if (wireCreated) break;
+    }
+    connectingFrom = null;
+    if (wireCreated) {
+      simulate();
+    } else {
+      render();
+    }
+  }
+}
+
 container.addEventListener('dragover', e=>e.preventDefault());
 container.addEventListener('drop', e=> {
   let t = e.dataTransfer.getData('text'); if(!t) return;
@@ -2094,139 +2453,68 @@ container.addEventListener('drop', e=> {
   components.push(new Gate(t, worldX, worldY));
   simulate();
 });
-document.querySelectorAll('.gate-tool').forEach(t => t.ondragstart = e => {
-  const rect = t.getBoundingClientRect();
-  dragOffsetX = e.clientX - rect.left;
-  dragOffsetY = e.clientY - rect.top;
-  e.dataTransfer.setData('text', t.dataset.type);
+document.querySelectorAll('.gate-tool').forEach(t => {
+  t.ondragstart = e => {
+    if (usesTapToAdd()) {
+      e.preventDefault();
+      return false;
+    }
+    const rect = t.getBoundingClientRect();
+    dragOffsetX = e.clientX - rect.left;
+    dragOffsetY = e.clientY - rect.top;
+    e.dataTransfer.setData('text', t.dataset.type);
+  };
+  t.addEventListener('click', () => {
+    if (usesTapToAdd()) placeGateAtViewportCenter(t.dataset.type);
+  });
 });
 
-canvas.onmousedown = e => {
-  let r = canvas.getBoundingClientRect(); 
-  let rawX = e.clientX - r.left;
-  let rawY = e.clientY - r.top;
-  let mx = (rawX - panX) / zoomLevel;
-  let my = (rawY - panY) / zoomLevel;
+canvas.addEventListener('pointerdown', e => {
+  if (!e.isPrimary) return;
+  activePointerId = e.pointerId;
+  canvas.setPointerCapture(e.pointerId);
+  if (e.pointerType !== 'mouse') e.preventDefault();
+  handlePointerDown(e.clientX, e.clientY, e.button ?? 0);
+});
 
-  // Use only left click for interaction and panning.
-  if (e.button !== 0) return;
-  
-  window.mx = mx; window.my = my;
+canvas.addEventListener('pointermove', e => {
+  if (!e.isPrimary || activePointerId !== e.pointerId) return;
+  if (e.pointerType !== 'mouse') e.preventDefault();
+  handlePointerMove(e.clientX, e.clientY);
+});
 
-  // Click selected gate's inline delete X.
-  if (selectedComp) {
-    const del = selectedComp.getDeleteBadgePos();
-    if (Math.hypot(mx - del.x, my - del.y) <= del.r + 2) {
-      pushUndo();
-      removeComponent(selectedComp);
-      return;
-    }
+const releasePointerInteraction = e => {
+  if (!e.isPrimary || activePointerId !== e.pointerId) return;
+  handlePointerUp();
+  if (canvas.hasPointerCapture && canvas.hasPointerCapture(e.pointerId)) {
+    canvas.releasePointerCapture(e.pointerId);
   }
-  
-  // Output port click
-  for(let c of components) {
-    if(c.outPorts && Math.hypot(mx - c.getOutPos().x, my - c.getOutPos().y) < 12) {
-      connectingFrom = {c, p:0}; return;
-    }
-  }
-
-  // Wire click
-  for(let w of wires) {
-    if(isPointNearWire(mx, my, w)) {
-      pushUndo();
-      wires = wires.filter(wire => wire !== w);
-      simulate();
-      render();
-      return;
-    }
-  }
-
-  // Gate click
-  for(let i=components.length-1; i>=0; i--) {
-    let c = components[i];
-    if(mx>c.x && mx<c.x+c.w && my>c.y && my<c.y+c.h) {
-      if(c.type==='input') { pushUndo(); c.value = !c.value; simulate(); }
-      selectedComp = c; draggedComp = c; dragOffX = mx-c.x; dragOffY = my-c.y; dragStartX = c.x; dragStartY = c.y;
-      updateUI(); render(); return;
-    }
-  }
-
-  // Left-click on empty background starts panning.
-  isPanning = true;
-  panStartX = rawX;
-  panStartY = rawY;
-  selectedComp = null;
-  updateUI();
-  render();
+  activePointerId = null;
 };
 
-canvas.onmousemove = e => {
-  let r = canvas.getBoundingClientRect();
-  let rawX = e.clientX - r.left;
-  let rawY = e.clientY - r.top;
-  let mx = (rawX - panX) / zoomLevel;
-  let my = (rawY - panY) / zoomLevel;
-  
-  // Panning
-  if (isPanning) {
-    panX += (rawX - panStartX);
-    panY += (rawY - panStartY);
-    panStartX = rawX;
-    panStartY = rawY;
-    render();
-    return;
-  }
-  
-  window.mx = mx; window.my = my;
-  if(draggedComp) { draggedComp.x = mx-dragOffX; draggedComp.y = my-dragOffY; render(); }
-  if(connectingFrom) render();
-};
-
-canvas.onmouseup = e => {
-  isPanning = false;
-  if (draggedComp) {
-    // Only push undo if the gate actually moved
-    if (Math.abs(draggedComp.x - dragStartX) > 2 || Math.abs(draggedComp.y - dragStartY) > 2) {
-      const moved = draggedComp;
-      const finalX = moved.x, finalY = moved.y;
-      moved.x = dragStartX; moved.y = dragStartY;
-      pushUndo();
-      moved.x = finalX; moved.y = finalY;
-    }
-  }
-  draggedComp = null;
-  if(connectingFrom) {
-    for(let c of components) {
-      for(let i=0; i<c.inPorts; i++) {
-        let p = c.getInPos(i);
-        if(Math.hypot(window.mx - p.x, window.my - p.y) < 12) {
-          wires = wires.filter(w => !(w.to.c===c && w.to.p===i));
-          wires.push({from: connectingFrom, to: {c, p:i}});
-        }
-      }
-    }
-    pushUndo();
-    connectingFrom = null; simulate();
-  }
-};
+canvas.addEventListener('pointerup', releasePointerInteraction);
+canvas.addEventListener('pointercancel', releasePointerInteraction);
 
 canvas.onwheel = e => {
   e.preventDefault();
-  const oldZoom = zoomLevel;
-  zoomLevel += (e.deltaY > 0 ? -0.1 : 0.1);
-  zoomLevel = Math.max(0.5, Math.min(3, zoomLevel));
-  
-  // Adjust pan to zoom toward mouse position
-  let r = canvas.getBoundingClientRect();
-  let mouseX = e.clientX - r.left;
-  let mouseY = e.clientY - r.top;
-  
-  panX = mouseX - (mouseX - panX) * (zoomLevel / oldZoom);
-  panY = mouseY - (mouseY - panY) * (zoomLevel / oldZoom);
-  
-  render();
+  stepZoom(e.deltaY > 0 ? -0.1 : 0.1, e.clientX, e.clientY);
 };
 canvas.oncontextmenu = e => e.preventDefault();
+
+if (btnZoomIn) {
+  btnZoomIn.addEventListener('click', () => stepZoom(0.1));
+}
+if (btnZoomOut) {
+  btnZoomOut.addEventListener('click', () => stepZoom(-0.1));
+}
+if (btnZoomReset) {
+  btnZoomReset.addEventListener('click', () => {
+    applyZoom(1);
+    panX = 0;
+    panY = 0;
+    render();
+  });
+}
 
 // ────────────────────────────────────────────────
 // UI Updates
@@ -2265,7 +2553,7 @@ function updateUI() {
   let ins = components.filter(c=>c.type==='input'), outs = components.filter(c=>c.type==='output');
   if(!ins.length || !outs.length) { rightContent.innerHTML='<div class="empty-state">Requires at least 1 input and 1 output.</div>'; return; }
   
-  let html = '<table id="truth-table-view"><thead><tr>';
+  let html = '<div class="table-responsive"><table id="truth-table-view" class="align-middle"><thead><tr>';
   ins.forEach(i => html+=`<th>${i.label}</th>`); outs.forEach(o => html+=`<th>${o.label}</th>`);
   html += '</tr></thead><tbody>';
 
@@ -2284,7 +2572,7 @@ function updateUI() {
   }
   ins.forEach((c, idx) => c.value = orig[idx]);
   for(let k=0; k<5; k++) { wires.forEach(w=>w.to.c.inputs[w.to.p]=w.from.c.value); components.forEach(c=>c.eval()); }
-  rightContent.innerHTML = html + '</tbody></table>';
+  rightContent.innerHTML = html + '</tbody></table></div>';
 }
 
 window.updateLabel = e => { if(selectedComp && e.key==='Enter') { selectedComp.label = e.target.value; render(); } };
@@ -2337,6 +2625,7 @@ window.addEventListener('keydown', e => {
 setTimeout(resize, 100);
 setTimeout(() => {
   initTheme();
+  updateInteractionHint();
   loadFromURL();
   if (!currentExampleKey) setMode('examples');
   showWelcomeModal();
