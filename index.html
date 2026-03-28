@@ -140,6 +140,13 @@
       color: var(--accent);
     }
 
+    #btn-mobile-menu {
+      display: none;
+      min-width: 40px;
+      justify-content: center;
+      padding: 6px 10px;
+    }
+
     #undo-redo-bar {
       display: flex; align-items: center; gap: 12px;
       padding: 6px 12px;
@@ -698,6 +705,10 @@
         white-space: nowrap;
       }
 
+      #btn-mobile-menu {
+        display: inline-flex;
+      }
+
       #workspace {
         flex-direction: column;
         overflow: visible;
@@ -755,6 +766,31 @@
         display: flex;
       }
 
+      body.mobile-canvas-focus #left-panel,
+      body.mobile-canvas-focus #right-panel,
+      body.mobile-canvas-focus #status-bar,
+      body.mobile-canvas-focus #undo-redo-bar {
+        display: none;
+      }
+
+      body.mobile-canvas-focus #top-nav {
+        padding: 10px 12px;
+        gap: 8px;
+      }
+
+      body.mobile-canvas-focus .nav-left,
+      body.mobile-canvas-focus .nav-right {
+        display: none;
+      }
+
+      body.mobile-canvas-focus #center-panel {
+        min-height: calc(100dvh - 70px);
+      }
+
+      body.mobile-canvas-focus #mobile-canvas-controls {
+        bottom: 20px;
+      }
+
       .welcome-card {
         padding: 24px 18px 18px;
       }
@@ -794,6 +830,7 @@
   </div>
 
   <div id="top-nav">
+    <button class="nav-btn" id="btn-mobile-menu" aria-label="Toggle mobile menu" title="Toggle full canvas view"><i class="ph ph-list"></i></button>
     <div class="nav-left">
       <div class="brand">
         <span class="brand-name">LOGOS</span>
@@ -911,6 +948,7 @@ const rightHeader = document.getElementById('right-header');
 const rightContent = document.getElementById('right-content');
 const counts = document.getElementById('counts');
 const btnTheme = document.getElementById('btn-theme');
+const btnMobileMenu = document.getElementById('btn-mobile-menu');
 const statusHint = document.getElementById('status-hint');
 const welcomeModal = document.getElementById('welcome-modal');
 const welcomeClose = document.getElementById('welcome-close');
@@ -1019,8 +1057,22 @@ function usesTapToAdd() {
 function updateInteractionHint() {
   if (!statusHint) return;
   statusHint.textContent = usesTapToAdd()
-    ? 'Tap a component to add it • Drag gates to move • Tap output then input to wire • Use +/- to zoom'
+    ? 'Tap a component to add it • Tap the 3-bars button for full canvas • Tap output then input to wire • Use +/- to zoom'
     : 'Drag to add • Hold left-click on empty background to pan • Scroll to zoom';
+}
+
+function syncMobileMenuButton() {
+  if (!btnMobileMenu) return;
+  const focused = document.body.classList.contains('mobile-canvas-focus');
+  btnMobileMenu.innerHTML = focused ? '<i class="ph ph-x"></i>' : '<i class="ph ph-list"></i>';
+  btnMobileMenu.title = focused ? 'Exit full canvas view' : 'Enter full canvas view';
+  btnMobileMenu.setAttribute('aria-label', focused ? 'Exit full canvas view' : 'Enter full canvas view');
+}
+
+function setMobileCanvasFocus(enabled) {
+  document.body.classList.toggle('mobile-canvas-focus', !!enabled);
+  syncMobileMenuButton();
+  setTimeout(resize, 80);
 }
 
 function showWelcomeModal() {
@@ -1059,7 +1111,12 @@ function resize() {
 }
 window.addEventListener('resize', resize);
 if (mobileLayoutQuery.addEventListener) {
-  mobileLayoutQuery.addEventListener('change', updateInteractionHint);
+  mobileLayoutQuery.addEventListener('change', () => {
+    if (!mobileLayoutQuery.matches) {
+      setMobileCanvasFocus(false);
+    }
+    updateInteractionHint();
+  });
 }
 
 function getPortConfig(type) {
@@ -2516,6 +2573,14 @@ if (btnZoomReset) {
   });
 }
 
+if (btnMobileMenu) {
+  btnMobileMenu.addEventListener('click', () => {
+    if (!isMobileLayout()) return;
+    const next = !document.body.classList.contains('mobile-canvas-focus');
+    setMobileCanvasFocus(next);
+  });
+}
+
 // ────────────────────────────────────────────────
 // UI Updates
 // ────────────────────────────────────────────────
@@ -2625,6 +2690,7 @@ window.addEventListener('keydown', e => {
 setTimeout(resize, 100);
 setTimeout(() => {
   initTheme();
+  syncMobileMenuButton();
   updateInteractionHint();
   loadFromURL();
   if (!currentExampleKey) setMode('examples');
