@@ -197,7 +197,7 @@
 
     /* Left Panel: Components */
     #left-panel {
-      width: 260px;
+      width: 300px;
       background-color: var(--bg-panel);
       border-right: 1px solid var(--border-color);
       display: flex; flex-direction: column;
@@ -246,6 +246,29 @@
 
     #btn-components-toggle:hover,
     #btn-components-toggle:focus {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-dim);
+      box-shadow: none;
+    }
+
+    #btn-back-to-components {
+      display: none;
+      margin-left: auto;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 1px solid var(--border-light);
+      background: transparent;
+      color: var(--text-muted);
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    #btn-back-to-components:hover,
+    #btn-back-to-components:focus {
       border-color: var(--accent);
       color: var(--accent);
       background: var(--accent-dim);
@@ -781,6 +804,7 @@
       }
 
       /* Mode buttons are already available in mobile quick-nav. */
+      #btn-components,
       #btn-examples,
       #btn-challenges,
       #btn-tt,
@@ -803,6 +827,10 @@
       #left-panel {
         border-bottom: 1px solid var(--border-color);
         max-height: min(34vh, 320px);
+      }
+
+      #left-panel.mode-expanded {
+        max-height: min(65vh, 540px);
       }
 
       #btn-components-toggle {
@@ -913,6 +941,7 @@
       </div>
       <div class="live-badge"><div class="live-dot"></div> BETA</div>
       <div class="divider"></div>
+      <button class="nav-btn" id="btn-components"><i class="ph ph-circuitry"></i> Components</button>
       <button class="nav-btn" id="btn-examples"><i class="ph ph-stack"></i> Examples</button>
       <button class="nav-btn" id="btn-challenges"><i class="ph ph-puzzle-piece"></i> Challenges</button>
     </div>
@@ -930,7 +959,11 @@
   <div id="workspace">
 
     <div id="left-panel">
-      <div class="panel-header"><i class="ph ph-circuitry"></i> COMPONENTS <button type="button" id="btn-components-toggle" aria-label="Hide components" aria-expanded="true" title="Hide components"><i class="ph ph-caret-up"></i></button></div>
+      <div class="panel-header">
+        <span id="right-header"><i class="ph ph-circuitry"></i> COMPONENTS</span>
+        <button type="button" id="btn-back-to-components" aria-label="Back to Components" title="Back to Components"><i class="ph ph-arrow-left"></i></button>
+        <button type="button" id="btn-components-toggle" aria-label="Hide components" aria-expanded="true" title="Hide components"><i class="ph ph-caret-up"></i></button>
+      </div>
       <div id="mobile-section-nav" aria-label="Mobile section navigation">
         <button type="button" class="mobile-quick-btn" data-mobile-section="components"><i class="ph ph-circuitry"></i> Components</button>
         <button type="button" class="mobile-quick-btn" data-mobile-section="examples"><i class="ph ph-stack"></i> Examples</button>
@@ -938,7 +971,7 @@
         <button type="button" class="mobile-quick-btn" data-mobile-section="props"><i class="ph ph-gear"></i> Properties</button>
         <button type="button" class="mobile-quick-btn" data-mobile-section="tt"><i class="ph ph-table"></i> Truth Table</button>
       </div>
-      <div class="panel-content">
+      <div class="panel-content" id="components-panel-content">
         
         <div class="category-title">Basic</div>
         <div class="gate-tool" data-type="and" draggable="true">
@@ -983,6 +1016,7 @@
         </div>
 
       </div>
+      <div class="panel-content" id="right-content" style="display:none;"></div>
     </div>
 
     <div id="center-panel">
@@ -1009,12 +1043,6 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <div id="right-panel">
-      <div class="panel-header" id="right-header"><i class="ph ph-gear"></i> PROPERTIES</div>
-      <div class="panel-content" id="right-content">
-        </div>
     </div>
 
   </div>
@@ -1103,6 +1131,7 @@ const MODE_HEADERS = {
 };
 
 const navButtons = {
+  components: document.getElementById('btn-components'),
   examples: document.getElementById('btn-examples'),
   challenges: document.getElementById('btn-challenges'),
   props: document.getElementById('btn-props'),
@@ -1163,9 +1192,9 @@ function scrollToPanel(panel) {
 
 function handleMobileSectionAction(action) {
   const leftPanel = document.getElementById('left-panel');
-  const rightPanel = document.getElementById('right-panel');
 
   if (action === 'components') {
+    setMode('components');
     setComponentsCollapsed(false);
     scrollToPanel(leftPanel);
     return;
@@ -1173,7 +1202,8 @@ function handleMobileSectionAction(action) {
 
   if (action === 'examples' || action === 'challenges' || action === 'props' || action === 'tt') {
     setMode(action);
-    scrollToPanel(rightPanel);
+    setComponentsCollapsed(false);
+    scrollToPanel(leftPanel);
   }
 }
 
@@ -2141,9 +2171,24 @@ function syncModeButtons() {
 
 function setMode(mode) {
   currentMode = mode;
-  rightHeader.innerHTML = MODE_HEADERS[mode];
+  const isComponents = mode === 'components';
+  const compContent = document.getElementById('components-panel-content');
+  const modeContent = document.getElementById('right-content');
+  const backBtn = document.getElementById('btn-back-to-components');
+  const toggleBtn = document.getElementById('btn-components-toggle');
+
+  if (compContent) compContent.style.display = isComponents ? '' : 'none';
+  if (modeContent) modeContent.style.display = isComponents ? 'none' : '';
+  if (backBtn) backBtn.style.display = isComponents ? 'none' : 'inline-flex';
+  if (toggleBtn) toggleBtn.style.display = isComponents ? 'inline-flex' : 'none';
+  if (leftPanel) leftPanel.classList.toggle('mode-expanded', !isComponents);
+
+  rightHeader.innerHTML = isComponents
+    ? '<i class="ph ph-circuitry"></i> COMPONENTS'
+    : MODE_HEADERS[mode];
+
   syncModeButtons();
-  updateUI();
+  if (!isComponents) updateUI();
 }
 
 function renderExampleBrowser() {
@@ -2695,6 +2740,8 @@ function updateUI() {
   const scoreSuffix = score.errors > 0 ? ` &nbsp;&nbsp; ⚠ ${score.errors} error(s)` : ` &nbsp;&nbsp; Efficiency: ${score.score}%`;
   counts.innerHTML = `Gates: ${score.gates} &nbsp;&nbsp; Wires: ${score.wires}${scoreSuffix}${exampleSuffix}`;
 
+  if (currentMode === 'components') return;
+
   if (currentMode === 'examples') {
     renderExampleBrowser();
     return;
@@ -2757,10 +2804,12 @@ function removeComponent(comp) {
 
 window.delSelected = () => removeComponent(selectedComp);
 
+navButtons.components.onclick = () => setMode('components');
 navButtons.examples.onclick = () => setMode('examples');
 navButtons.challenges.onclick = () => setMode('challenges');
 navButtons.props.onclick = () => setMode('props');
 navButtons.tt.onclick = () => setMode('tt');
+document.getElementById('btn-back-to-components').addEventListener('click', () => setMode('components'));
 btnTheme.onclick = () => setTheme(document.body.classList.contains('light-mode') ? 'dark' : 'light');
 document.getElementById('btn-undo').onclick = () => performUndo();
 document.getElementById('btn-redo').onclick = () => performRedo();
@@ -2798,7 +2847,7 @@ setTimeout(() => {
   setComponentsCollapsed(false);
   updateInteractionHint();
   loadFromURL();
-  if (!currentExampleKey) setMode('examples');
+  if (!currentExampleKey) setMode('components');
   showWelcomeModal();
 }, 120);
 </script>
