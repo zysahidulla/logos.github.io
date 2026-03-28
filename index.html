@@ -229,6 +229,29 @@
       border-bottom: 1px solid var(--border-color);
     }
 
+    #btn-components-toggle {
+      display: none;
+      margin-left: auto;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 1px solid var(--border-light);
+      background: transparent;
+      color: var(--text-muted);
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    #btn-components-toggle:hover,
+    #btn-components-toggle:focus {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-dim);
+      box-shadow: none;
+    }
+
     .panel-content { padding: 16px 20px; overflow-y: auto; flex: 1; min-height: 0; -webkit-overflow-scrolling: touch; }
 
     /* ────────────────────────────────────────────────
@@ -783,6 +806,22 @@
         max-height: min(34vh, 320px);
       }
 
+      #btn-components-toggle {
+        display: inline-flex;
+      }
+
+      #left-panel.collapsed {
+        max-height: 58px;
+      }
+
+      #left-panel.collapsed .panel-content {
+        display: none;
+      }
+
+      #left-panel.collapsed .panel-header {
+        border-bottom: none;
+      }
+
       #center-panel {
         min-height: 58vh;
       }
@@ -825,6 +864,45 @@
 
       #mobile-quick-nav {
         display: flex;
+      }
+
+      body.mobile-canvas-fullscreen {
+        overflow: hidden;
+      }
+
+      body.mobile-canvas-fullscreen #top-nav,
+      body.mobile-canvas-fullscreen #left-panel,
+      body.mobile-canvas-fullscreen #right-panel,
+      body.mobile-canvas-fullscreen #undo-redo-bar,
+      body.mobile-canvas-fullscreen #status-bar {
+        display: none;
+      }
+
+      body.mobile-canvas-fullscreen #workspace {
+        height: 100dvh;
+      }
+
+      body.mobile-canvas-fullscreen #center-panel {
+        min-height: 100dvh;
+      }
+
+      body.mobile-canvas-fullscreen #canvas-container {
+        flex: none;
+        height: calc(100dvh - 58px);
+      }
+
+      body.mobile-canvas-fullscreen #mobile-quick-nav {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-bottom: none;
+        background: rgba(13, 13, 13, 0.94);
+        backdrop-filter: blur(10px);
+      }
+
+      body.mobile-canvas-fullscreen #mobile-canvas-controls {
+        bottom: 70px;
       }
 
       .welcome-card {
@@ -890,7 +968,7 @@
   <div id="workspace">
     
     <div id="left-panel">
-      <div class="panel-header"><i class="ph ph-circuitry"></i> COMPONENTS</div>
+      <div class="panel-header"><i class="ph ph-circuitry"></i> COMPONENTS <button type="button" id="btn-components-toggle" aria-label="Hide components" aria-expanded="true" title="Hide components"><i class="ph ph-caret-up"></i></button></div>
       <div class="panel-content">
         
         <div class="category-title">Basic</div>
@@ -999,6 +1077,9 @@ const btnZoomIn = document.getElementById('btn-zoom-in');
 const btnZoomOut = document.getElementById('btn-zoom-out');
 const btnZoomReset = document.getElementById('btn-zoom-reset');
 const mobileQuickButtons = document.querySelectorAll('[data-mobile-action]');
+const workspaceQuickButton = document.querySelector('[data-mobile-action="workspace"]');
+const leftPanel = document.getElementById('left-panel');
+const btnComponentsToggle = document.getElementById('btn-components-toggle');
 
 let components = []; let wires = [];
 let selectedComp = null; let draggedComp = null; let connectingFrom = null;
@@ -1100,8 +1181,27 @@ function usesTapToAdd() {
 function updateInteractionHint() {
   if (!statusHint) return;
   statusHint.textContent = usesTapToAdd()
-    ? 'Use quick actions below canvas • Tap Components then tap a gate to add • Use +/- to zoom'
+    ? 'Use quick actions below canvas • Tap Canvas for fullscreen • Tap Components then tap a gate to add'
     : 'Drag to add • Hold left-click on empty background to pan • Scroll to zoom';
+}
+
+function syncMobileWorkspaceButton() {
+  if (!workspaceQuickButton) return;
+  const fullscreen = document.body.classList.contains('mobile-canvas-fullscreen');
+  workspaceQuickButton.innerHTML = fullscreen
+    ? '<i class="ph ph-arrows-in"></i> Exit Canvas'
+    : '<i class="ph ph-arrows-out"></i> Canvas';
+}
+
+function setComponentsCollapsed(collapsed) {
+  if (!leftPanel || !btnComponentsToggle) return;
+  leftPanel.classList.toggle('collapsed', !!collapsed);
+  btnComponentsToggle.setAttribute('aria-expanded', String(!collapsed));
+  btnComponentsToggle.setAttribute('aria-label', collapsed ? 'Show components' : 'Hide components');
+  btnComponentsToggle.title = collapsed ? 'Show components' : 'Hide components';
+  btnComponentsToggle.innerHTML = collapsed
+    ? '<i class="ph ph-caret-down"></i>'
+    : '<i class="ph ph-caret-up"></i>';
 }
 
 function scrollToPanel(panel) {
@@ -1115,11 +1215,22 @@ function handleMobileQuickAction(action) {
   const centerPanel = document.getElementById('center-panel');
 
   if (action === 'workspace') {
+    if (isMobileLayout()) {
+      document.body.classList.toggle('mobile-canvas-fullscreen');
+      syncMobileWorkspaceButton();
+      setTimeout(resize, 80);
+    }
     scrollToPanel(centerPanel);
     return;
   }
 
+  if (document.body.classList.contains('mobile-canvas-fullscreen')) {
+    document.body.classList.remove('mobile-canvas-fullscreen');
+    syncMobileWorkspaceButton();
+  }
+
   if (action === 'components') {
+    setComponentsCollapsed(false);
     scrollToPanel(leftPanel);
     return;
   }
@@ -1167,6 +1278,11 @@ function resize() {
 window.addEventListener('resize', resize);
 if (mobileLayoutQuery.addEventListener) {
   mobileLayoutQuery.addEventListener('change', () => {
+    if (!mobileLayoutQuery.matches && document.body.classList.contains('mobile-canvas-fullscreen')) {
+      document.body.classList.remove('mobile-canvas-fullscreen');
+    }
+    syncMobileWorkspaceButton();
+    setComponentsCollapsed(false);
     updateInteractionHint();
   });
 }
@@ -2631,6 +2747,13 @@ mobileQuickButtons.forEach(button => {
   });
 });
 
+if (btnComponentsToggle) {
+  btnComponentsToggle.addEventListener('click', () => {
+    const isCollapsed = leftPanel && leftPanel.classList.contains('collapsed');
+    setComponentsCollapsed(!isCollapsed);
+  });
+}
+
 // ────────────────────────────────────────────────
 // UI Updates
 // ────────────────────────────────────────────────
@@ -2740,6 +2863,8 @@ window.addEventListener('keydown', e => {
 setTimeout(resize, 100);
 setTimeout(() => {
   initTheme();
+  syncMobileWorkspaceButton();
+  setComponentsCollapsed(false);
   updateInteractionHint();
   loadFromURL();
   if (!currentExampleKey) setMode('examples');
